@@ -1,7 +1,7 @@
-package com.example.weatherapp.data.repository
+package com.example.myapplication.data.repository
 
-import com.example.weatherapp.data.model.WeatherResponse
-import com.example.weatherapp.data.network.RetrofitClient
+import com.example.myapplication.data.model.WeatherResponse
+import com.example.myapplication.data.network.RetrofitClient
 import retrofit2.Response
 
 class WeatherRepository {

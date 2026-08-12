@@ -10,6 +10,10 @@ import android.widget.TextView
 import android.widget.LinearLayout
 import android.widget.Toast
 import android.widget.ImageView
+import androidx.lifecycle.lifecycleScope
+import com.example.myapplication.data.repository.WeatherRepository
+import kotlinx.coroutines.launch
+import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
 
@@ -25,6 +29,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var windSpeed: TextView
     private lateinit var errorMessage: TextView
     private lateinit var weatherIcon: ImageView
+
+    private val repository = WeatherRepository()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,19 +63,15 @@ class MainActivity : AppCompatActivity() {
      * Handle Search Button Click
      * - Validate input (empty check)
      * - Show/hide UI states
+     * - Trigger API request (Member 3)
      */
     private fun handleSearch() {
         val city = cityInput.text.toString().trim()
 
         // ===== CASE 1: Empty City Name =====
         if (city.isEmpty()) {
-            // Show error in TextView
             showError("Please enter a city name! 🌧️")
-
-            // Also show Toast
             Toast.makeText(this, "City name cannot be empty", Toast.LENGTH_SHORT).show()
-
-            // Hide weather display
             hideWeather()
             return
         }
@@ -84,12 +86,40 @@ class MainActivity : AppCompatActivity() {
         hideWeather()
 
         // ===== TRIGGER API REQUEST =====
-        // Member 2 & 3 will implement this method
-        // For now, show a message
-        Toast.makeText(this, "Searching for: $city", Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            try {
+                val response = repository.fetchWeather(city)
 
-        // For testing UI states, you can simulate a response:
-        // testWeatherDisplay()
+                if (response.isSuccessful) {
+                    val weather = response.body()
+                    if (weather != null) {
+                        showWeather(
+                            city = weather.cityName,
+                            temp = weather.main.temp.toInt().toString(),
+                            cond = weather.weather.firstOrNull()?.description ?: "Unknown",
+                            hum = weather.main.humidity.toString(),
+                            wind = weather.wind.speed.toString()
+                        )
+                    } else {
+                        showError("No data received. Please try again.")
+                    }
+                } else {
+                    // ===== CASE 2: Invalid City (404) =====
+                    // ===== CASE 4: Other API Errors =====
+                    when (response.code()) {
+                        404 -> showError("City not found. Please check the spelling.")
+                        401 -> showError("API authentication failed.")
+                        in 500..599 -> showError("Weather service is currently unavailable.")
+                        else -> showError("Something went wrong (code ${response.code()}).")
+                    }
+                }
+            } catch (e: IOException) {
+                // ===== CASE 3: Network Error =====
+                showError("No internet connection. Please check your network.")
+            } catch (e: Exception) {
+                showError("Unexpected error: ${e.localizedMessage}")
+            }
+        }
     }
 
     // ======================================
@@ -120,7 +150,7 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * Show weather data in UI
-     * Called by Member 3 after parsing API response
+     * Called after parsing API response
      */
     fun showWeather(
         city: String,
@@ -132,14 +162,12 @@ class MainActivity : AppCompatActivity() {
         hideLoading()
         hideError()
 
-        // Populate data
         cityName.text = "📍 $city"
         temperature.text = "🌡️ $temp°C"
         condition.text = "☁️ $cond"
         humidity.text = "💧 $hum%"
         windSpeed.text = "💨 $wind km/h"
 
-        // Show weather container
         weatherContainer.visibility = View.VISIBLE
     }
 
@@ -167,23 +195,5 @@ class MainActivity : AppCompatActivity() {
      */
     fun hideError() {
         errorMessage.visibility = View.GONE
-    }
-
-    // ======================================
-    // FOR TESTING UI (Remove later)
-    // ======================================
-
-    /**
-     * Test method to preview weather display
-     * Can be called from handleSearch() for testing
-     */
-    private fun testWeatherDisplay() {
-        showWeather(
-            city = "Colombo",
-            temp = "29",
-            cond = "Cloudy",
-            hum = "78",
-            wind = "12"
-        )
     }
 }

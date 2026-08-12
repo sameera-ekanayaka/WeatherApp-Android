@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 *.iml
 .gradle
 /local.properties
@@ -14,7 +13,6 @@
 .externalNativeBuild
 .cxx
 local.properties
-=======
 # Gradle files
 .gradle/
 build/
@@ -49,4 +47,3 @@ google-services.json
 
 # Android Profiling
 *.hprof
->>>>>>> 54435cbad814f968a4fc58601b8653f715718efa

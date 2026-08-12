@@ -3,17 +3,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.myapplication"
-    compileSdk {
-        version = release(37) {
-            minorApiLevel = 1
-        }
-    }
+    namespace = "com.example.weatherapp_android"
+    compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.example.myapplication"
+        applicationId = "com.example.weatherapp_android"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
 
@@ -42,6 +38,7 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
+
     // Retrofit & Gson Converter
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
